@@ -18,8 +18,8 @@ public class Failure
     public Failure(FailureType type, DateTime date, int deviceId)
     {
         this.type = type;
-        this.Date = date;
-        this.DeviceId = deviceId;
+        Date = date;
+        DeviceId = deviceId;
     }
 }
 
@@ -30,8 +30,8 @@ public class Device
 
     public Device(int id, string name)
     {
-        this.Id = id;
-        this.Name = name;
+        Id = id;
+        Name = name;
     }
 }
 
@@ -68,7 +68,7 @@ public class ReportMaker
         var failures = failureTypes
             .Select((type, i) => new Failure((FailureType)type, dates[i], deviceId[i]))
             .ToArray();
-        
+
         return FindDevicesFailedBeforeDate(
             currentDate,
             failures,
@@ -77,42 +77,29 @@ public class ReportMaker
     }
 
     private static DateTime[] TimesToDateTimes(object[][] times)
-    {
-        var dates = new DateTime[times.Length];
-        for (var i = 0; i < times.Length; i++)
-        {
-            dates[i] = new DateTime(
-                (int)times[i][2],
-                (int)times[i][1],
-                (int)times[i][0]
-            );
-        }
-
-        return dates;
-    }
+        => times
+            .Select(time => new DateTime(
+                (int)time[2],
+                (int)time[1],
+                (int)time[0]
+            ))
+            .ToArray();
 
     private static Device[] GetDevices(List<Dictionary<string, object>> devices)
-    {
-        var deviceArray = new Device[devices.Count];
-        for (var i = 0; i < devices.Count; i++)
-        {
-            deviceArray[i] = new Device(
-                (int)devices[i]["DeviceId"],
-                (string)devices[i]["Name"]
-            );
-        }
-
-        return deviceArray;
-    }
+        => devices
+            .Select(device => new Device(
+                (int)device["DeviceId"],
+                (string)device["Name"]
+            ))
+            .ToArray();
 
     private static List<string> FindDevicesFailedBeforeDate(DateTime currentDate, Failure[] failures,
         Device[] devices)
     {
         if (failures.Length < 1) return new List<string>();
-        return (from failure in failures
-                where failure.Date < currentDate && failure.IsSerious
-                select devices
-                    .First(device => device.Id == failure.DeviceId).Name)
+        return failures
+            .Where(failure => failure.Date < currentDate && failure.IsSerious)
+            .Select(failure => devices.First(device => device.Id == failure.DeviceId).Name)
             .ToList();
     }
 }
