@@ -144,7 +144,7 @@ public class BoundingBoxVisitor : IVisitor
                 (maxX + minX) / 2,
                 (maxY + minY) / 2,
                 (maxZ + minZ) / 2
-            ),
+            ), 
             maxX - minX,
             maxY - minY,
             maxZ - minZ

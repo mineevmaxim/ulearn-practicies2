@@ -15,7 +15,7 @@ public readonly struct Rational
 
     public static Rational operator +(Rational a, Rational b)
     {
-        if (a.IsNan || b.IsNan) return new Rational(1, 0);
+        if (!IsValid(a, b)) return GetNanRational;
         var reduced = Reduce(
             a.Numerator * b.Denominator + b.Numerator * a.Denominator,
             a.Denominator * b.Denominator
@@ -28,7 +28,7 @@ public readonly struct Rational
 
     public static Rational operator -(Rational a, Rational b)
     {
-        if (a.IsNan || b.IsNan) return new Rational(1, 0);
+        if (!IsValid(a, b)) return GetNanRational;
         var reduced = Reduce(
             a.Numerator * b.Denominator - b.Numerator * a.Denominator,
             a.Denominator * b.Denominator
@@ -41,7 +41,7 @@ public readonly struct Rational
 
     public static Rational operator *(Rational a, Rational b)
     {
-        if (a.IsNan || b.IsNan) return new Rational(1, 0);
+        if (!IsValid(a, b)) return GetNanRational;
         var reduced = Reduce(
             a.Numerator * b.Numerator,
             a.Denominator * b.Denominator
@@ -54,7 +54,7 @@ public readonly struct Rational
 
     public static Rational operator /(Rational a, Rational b)
     {
-        if (a.IsNan || b.IsNan) return new Rational(1, 0);
+        if (!IsValid(a, b)) return GetNanRational;
         var reduced = Reduce(
             a.Numerator * b.Denominator,
             a.Denominator * b.Numerator
@@ -65,11 +65,8 @@ public readonly struct Rational
         );
     }
 
-    public static implicit operator double(Rational a)
-    {
-        if (a.IsNan) return double.NaN;
-        return (double)a.Numerator / a.Denominator;
-    }
+    public static implicit operator double(Rational a) 
+        => a.IsNan ? double.NaN : (double)a.Numerator / a.Denominator; 
 
     public static explicit operator int(Rational a)
     {
@@ -78,14 +75,15 @@ public readonly struct Rational
         return a.Numerator / a.Denominator;
     }
 
-    public static implicit operator Rational(int value)
-    {
-        return new Rational(value);
-    }
+    public static implicit operator Rational(int value) => new(value);
+    
+    private static bool IsValid(Rational a, Rational b) => !a.IsNan && !b.IsNan;
+    
+    private static Rational GetNanRational => new(1, 0);
 
     private static (int numerator, int denominator) Reduce(int numerator, int denominator)
     {
-        if (denominator == 0) return (numerator, denominator);
+        if (denominator == 0) return (1, denominator);
         if (numerator == 0) return (0, 1);
         var start = Math.Max(
             Math.Abs(numerator),
